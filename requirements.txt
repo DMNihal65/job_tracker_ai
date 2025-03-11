@@ -1,0 +1,12 @@
+selenium==4.16.0
+beautifulsoup4==4.12.2
+webdriver-manager==4.0.1
+langchain==0.1.0
+langchain-google-genai==0.0.5
+google-generativeai==0.3.2
+streamlit==1.29.0
+pandas==2.1.4
+Pillow==10.1.0
+pyperclip==1.8.2
+python-dotenv==1.0.0
+requests==2.31.0 
