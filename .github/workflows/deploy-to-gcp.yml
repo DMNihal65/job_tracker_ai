@@ -1,0 +1,40 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+        
+    - name: Build and push Docker image to Google Container Registry
+      run: |
+        gcloud auth configure-docker
+        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker:${{ github.sha }} .
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker:${{ github.sha }}
+        
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy job-tracker \
+          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker:${{ github.sha }} \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --memory 2Gi \
+          --cpu 1 \
+          --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" \
+          --set-env-vars="NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}" \
+          --set-env-vars="NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}" \
+          --set-env-vars="NOTION_PAGE_ID=${{ secrets.NOTION_PAGE_ID }}" 

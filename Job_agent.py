@@ -1266,7 +1266,7 @@ def run_streamlit_app():
                                 st.rerun()
                         except Exception as e:
                             st.error(f"Error creating database: {str(e)}")
-                    else:
+                else:
                         st.error("All fields are required")
                         
             elif notion_option == "Use Existing Database":
@@ -1290,10 +1290,6 @@ def run_streamlit_app():
                                         success, update_msg = notion_client.update_database_schema()
                                         if success:
                                             st.success(update_msg)
-                                        else:
-                                            st.error(update_msg)
-                                            st.error("Please create a new database instead.")
-                                            st.stop()
                                 else:
                                     st.success("Database schema is valid!")
                                 
@@ -1308,7 +1304,7 @@ def run_streamlit_app():
                                 st.rerun()
                         except Exception as e:
                             st.error(f"Error validating database: {str(e)}")
-                    else:
+                else:
                         st.error("All fields are required")
             
             else:  # No Notion Integration
@@ -1318,7 +1314,7 @@ def run_streamlit_app():
                         st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key)
                         st.session_state.api_keys_set = True
                         st.rerun()
-                    else:
+                else:
                         st.error("Gemini API Key is required")
         else:
             # Just Gemini API without Notion
@@ -1466,9 +1462,7 @@ def run_streamlit_app():
             if st.button("Copy InMail Message"):
                 pyperclip.copy(edited_inmail_msg)
                 st.success("Message copied to clipboard!")
-            st.markdown('</div>', unsafe_allow_html=True)
             
-            # Update Notion with edited messages
             if st.session_state.notion_client and job.get("notion_page_id"):
                 if st.button("Update Message Templates in Notion"):
                     try:
