@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "savvy-webbing-452010-a3",
+  "private_key_id": "23f000398e42af97943a94a52f5ee26c92dc8663",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDM1ncixoZjvnOg\nv6QgRqVCj3UdJprLVuqWHQ7nHM5PC7hRhaVTzUA8M8FiZzkc0kXarg46t1YrKwQO\nPWU9Tl6yUo7OP/tpUcukDNn3nJdkID+QqbYb3ufOkXcO37TSf/aC9F9mhnhVNlaM\njA80XrkUJQZ/dmxDthv4HpPEbi/M1/0wgUyvzmoaMnkH0HGuBLDOZkfC/Wyfh0IM\n8XsWdMt3YLao+/CXBbuw7jw9rgfj4ozB8nwPyp/Mqndx4J5QhF97A4BhF5JuIPJ/\nOGuwy4qe0gzWr2rybYLcmAV4FDltYlfrfZMTJPov61gsKHj8FC38sVDgMKWwxDbX\nVGHViJRtAgMBAAECggEAR/Hp7U5yRFVP0n2NHYMCp4KwnTkCdHoGMgxpwBX3hn70\n0blRrMHyFlMNUM01m6BlRZ4NxGTBgK7+oSvCQ8qjaxmhK+MAIGlIz8ltw1D+QX4s\nJVjebCKaI40nFpPPNIIaaLuBSIbhe/h2ZK4K5xeABQnOIvXKp+uuHjNLLlqPMnBn\nYlONkhtPN3Trbv+hz2Jzb+OOjBGRFS2n5RhXZ5lz5JeiE2wKryDzdXVxJ003GwaI\nLTbLEfDoryVSRTSmwHVgA4wTKag+FdMD8xMwxayQUYLU14jzshowXJN5uk8mOtdo\nULn69f1Ny5JSRBbLblxKmzYWBZA04dsc/KMHPZax1wKBgQDwUsC/eEGeiDy4YYuO\nD9wxDUXZnGlbp5wRBElmeNl7163UhqkZ6THzgUWB2t3r0c13mx1f8XX/4G9je4U3\nPEspXNxBQTBH7zt/bHCKwpsHpvjxubj5QAQgrDbBkm6vBmZWgAvOptH4gk3k+JxV\nApbRuYGDOW77Mc7AtfoaUzO/pwKBgQDaMyCA4DyLZAEkZLq8DB/kmxjI82Eciw2p\namO7wW+nWYFUZUjmfeuCOjnBsKoxJKdZptotlnWmCI6hDJtAaIol+c6qygerJAQT\nNe8qwDWjgNRs5uz3T1TjFYdnKmrw6iqY523VcHmlHvgyliTxqi94rvI+SFllpzln\nhPklRp7tywKBgQDuq2CdRxL0HJ0hCE8OcRXe6S2bpkjEK7tE8xrqV861vUb3sBy0\njPF8wb+D7RdEogIKbNRJeoYT7pLxG7T7XDfRBlX/wHvwlNhj/g/u3sIUYXEOr8HS\nWA9BW4aty318+UAdW+FeBDK3OMGfSoAHtSCPfEnxRtK/SYHpxVBzYHoeNQKBgFh3\nQCdgQsvU+O2TdW5GkCu0gkD/BBF5g0l73AHEtIsqK9hW1E63IOQEzWPtR6NzE/Ky\nRmUTSpHNiF5daRidCd3JwXPXQ3KswIY1aMlxco3e7sFUgyDl5inHkcVPGlqg5jJm\nKk7OMlOzEbgYzdO5R1PrwkVkOfKP8SM6c3Ucg9UvAoGAcxx+KoUrqxQNmYg1MpRB\nNer9q8fehM2nF7w2kQvVhILKXu9oV/rmvDgJmksjBixmsofvOLWY7p9xGEbenpfd\n9Pn8QBoS//H6ga180mpAGLXP3w2MiwB0mMtn6oPDf6wEi6j1IMm8gCoBs4j0Qt45\nbhXLBHk2ayqM+eXVx2vuJk0=\n-----END PRIVATE KEY-----\n",
+  "client_email": "github-actions-deployer@savvy-webbing-452010-a3.iam.gserviceaccount.com",
+  "client_id": "108200328158115746892",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/github-actions-deployer%40savvy-webbing-452010-a3.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
