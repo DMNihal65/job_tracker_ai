@@ -1290,7 +1290,7 @@ def run_streamlit_app():
                                         success, update_msg = notion_client.update_database_schema()
                                         if success:
                                             st.success(update_msg)
-                else:
+                                else:
                                     st.success("Database schema is valid!")
                                 
                                 # Save to environment variables
@@ -1356,7 +1356,7 @@ def run_streamlit_app():
         if submitted and job_url:
             if not job_url.startswith(('http://', 'https://')):
                 st.error("Invalid URL format. Please include http:// or https://")
-                else:
+            else:
                 with st.spinner("Processing job posting... This may take a minute..."):
                     try:
                         job_data = st.session_state.job_scraper.process_job_url(job_url)
@@ -1488,7 +1488,7 @@ def run_streamlit_app():
                         }
                         st.session_state.notion_client.update_job_entry(job["notion_page_id"], properties)
                         st.success("Message templates updated in Notion!")
-            except Exception as e:
+                    except Exception as e:
                         st.error(f"Error updating Notion: {str(e)}")
         
         # Job Description
@@ -1512,7 +1512,7 @@ def run_streamlit_app():
                 with st.spinner("Loading saved jobs..."):
                     entries = st.session_state.notion_client.get_job_entries()
                     st.session_state.saved_jobs = entries
-    except Exception as e:
+            except Exception as e:
                 st.error(f"Error loading jobs: {str(e)}")
                 return
         
