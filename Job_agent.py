@@ -13,6 +13,8 @@ from typing import Dict, List, Tuple, Optional
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import os
+import platform
+import sys
 from datetime import datetime
 import requests
 import pyperclip
@@ -30,9 +32,21 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 
+# Detect environment
+IS_STREAMLIT_CLOUD = os.environ.get('STREAMLIT_SHARING_MODE') == 'streamlit_sharing'
+IS_WINDOWS = platform.system() == 'Windows'
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Set environment-specific configurations
+if IS_STREAMLIT_CLOUD:
+    logger.info("Running in Streamlit Cloud environment")
+    # Ensure proper paths for Chrome in cloud environment
+    os.environ['PYTHONPATH'] = '/app'
+    if 'CHROMEDRIVER_PATH' not in os.environ:
+        os.environ['CHROMEDRIVER_PATH'] = '/usr/local/bin/chromedriver'
 
 class NotionClient:
     def __init__(self, token, database_id=None, page_id=None):
@@ -760,7 +774,7 @@ class EnhancedJobScraper:
         self.linkedin_helper = LinkedInHelper(gemini_api_key)
         
     def setup_chrome_options(self):
-        """Configure Chrome options for reliable scraping"""
+        """Configure Chrome options for reliable scraping in cloud environments"""
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless=new")
         self.chrome_options.add_argument("--disable-gpu")
@@ -770,6 +784,15 @@ class EnhancedJobScraper:
         self.chrome_options.add_argument("--enable-javascript")
         self.chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         self.chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        
+        # Add binary location for Streamlit Cloud
+        if IS_STREAMLIT_CLOUD:
+            # For Streamlit Cloud deployment
+            self.chrome_options.binary_location = "/usr/bin/chromium-browser"
+            self.chrome_options.add_argument("--disable-extensions")
+            self.chrome_options.add_argument("--disable-setuid-sandbox")
+            self.chrome_options.add_argument("--single-process")
+            self.chrome_options.add_argument("--ignore-certificate-errors")
         
     def setup_llm(self, api_key: str):
         self.llm = GoogleGenerativeAI(
@@ -792,12 +815,42 @@ class EnhancedJobScraper:
         
     def scrape_website(self, url: str) -> Dict:
         """Scrape job description from URL with improved error handling"""
+        job_data = {
+            "job_url": url,
+            "job_description": "",
+            "job_title": "",
+            "company": "",
+            "location": "",
+            "job_id": "",
+            "salary_range": "",
+            "employment_type": "",
+            "experience_level": ""
+        }
+        
+        # First try with Selenium
         try:
             logger.info(f"Starting to scrape URL: {url}")
             
-            # Setup webdriver with automatic ChromeDriver management
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=self.chrome_options)
+            # Setup webdriver with compatibility for both local and cloud environments
+            try:
+                # For Streamlit Cloud
+                if IS_STREAMLIT_CLOUD:
+                    try:
+                        # Try using the system chromedriver
+                        driver = webdriver.Chrome(options=self.chrome_options)
+                    except Exception as cloud_e:
+                        logger.error(f"Error with default Chrome setup in cloud: {str(cloud_e)}")
+                        # Fallback to specified chromedriver path
+                        chrome_driver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
+                        driver = webdriver.Chrome(executable_path=chrome_driver_path, options=self.chrome_options)
+                else:
+                    # For local development with automatic ChromeDriver management
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=self.chrome_options)
+            except Exception as e:
+                logger.error(f"Error setting up Chrome driver: {str(e)}")
+                # If all Selenium methods fail, fall back to requests
+                return self._fallback_scrape_with_requests(url, job_data)
             
             try:
                 driver.get(url)
@@ -1139,6 +1192,108 @@ class EnhancedJobScraper:
         job_data["linkedin_search_url"] = linkedin_search_url
         
         return job_data
+
+    def _fallback_scrape_with_requests(self, url: str, job_data: Dict) -> Dict:
+        """Fallback method to scrape job data using requests when Selenium fails"""
+        logger.info("Using requests fallback method for scraping")
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            response = requests.get(url, headers=headers, timeout=30)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Extract job ID from URL or page content
+            job_id_patterns = [
+                r'jobId=([^&]+)',
+                r'job[_-]id=([^&]+)',
+                r'jobs/([^/\?]+)',
+                r'job/([^/\?]+)',
+                r'careers/([^/\?]+)',
+                r'positions/([^/\?]+)'
+            ]
+            
+            for pattern in job_id_patterns:
+                match = re.search(pattern, url)
+                if match:
+                    job_data["job_id"] = match.group(1)
+                    break
+            
+            # Try to extract job title
+            title_selectors = [
+                "h1", 
+                "h1[class*='title']", 
+                "h2[class*='title']", 
+                "div[class*='title']",
+                "[class*='job-title']",
+                "[class*='jobtitle']"
+            ]
+            
+            for selector in title_selectors:
+                elements = soup.select(selector)
+                if elements:
+                    job_data["job_title"] = elements[0].get_text(strip=True)
+                    break
+            
+            # Try to extract company name
+            company_selectors = [
+                "[class*='company']",
+                "[class*='employer']",
+                "[class*='organization']",
+                "a[data-automation='jobCompany']"
+            ]
+            
+            for selector in company_selectors:
+                elements = soup.select(selector)
+                if elements:
+                    job_data["company"] = elements[0].get_text(strip=True)
+                    break
+            
+            # Try to extract location
+            location_selectors = [
+                "[class*='location']",
+                "[class*='address']",
+                "[class*='region']",
+                "[data-automation='jobLocation']"
+            ]
+            
+            for selector in location_selectors:
+                elements = soup.select(selector)
+                if elements:
+                    job_data["location"] = elements[0].get_text(strip=True)
+                    break
+            
+            # Extract job description
+            description_selectors = [
+                "[class*='description']",
+                "[class*='details']",
+                "[class*='content']",
+                "div[id*='description']",
+                "div[id*='details']",
+                "div[id*='job-details']",
+                "div[class*='job-details']",
+                "article"
+            ]
+            
+            for selector in description_selectors:
+                elements = soup.select(selector)
+                if elements:
+                    job_data["job_description"] = elements[0].get_text(strip=True)
+                    break
+            
+            # If we still don't have a job description, use the body content
+            if not job_data["job_description"] and soup.body:
+                job_data["job_description"] = soup.body.get_text(strip=True)
+            
+            logger.info("Successfully scraped job data using requests fallback")
+            return job_data
+            
+        except Exception as e:
+            logger.error(f"Error in requests fallback scraping: {str(e)}")
+            job_data["job_description"] = f"Failed to scrape job description. Please copy and paste the job description manually. Error: {str(e)}"
+            return job_data
 
 def run_streamlit_app():
     st.set_page_config(

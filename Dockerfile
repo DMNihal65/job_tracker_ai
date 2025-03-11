@@ -53,6 +53,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Create a streamlit config file
+RUN mkdir -p /root/.streamlit
+RUN echo "\
+[server]\n\
+port = 8080\n\
+enableCORS = false\n\
+enableXsrfProtection = false\n\
+" > /root/.streamlit/config.toml
+
 # Expose port for Streamlit (Cloud Run expects port 8080)
 EXPOSE 8080
 
@@ -64,5 +73,4 @@ ENV PYTHONUNBUFFERED=1 \
     PORT=8080
 
 # Start Xvfb, Chrome, and Streamlit
-CMD Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & \
-    streamlit run Job_agent.py --server.port=8080 --server.address=0.0.0.0 
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & streamlit run Job_agent.py --server.port=8080 --server.address=0.0.0.0 --server.enableCORS=false --server.enableXsrfProtection=false"] 

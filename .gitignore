@@ -34,8 +34,6 @@ ENV/
 *.swp
 *.swo
 
-# Streamlit
-.streamlit/
 
 # Logs
 *.log
