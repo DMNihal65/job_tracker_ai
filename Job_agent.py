@@ -1367,6 +1367,16 @@ def run_streamlit_app():
     if "saved_jobs" not in st.session_state:
         st.session_state.saved_jobs = []
     
+    if "use_default_credentials" not in st.session_state:
+        st.session_state.use_default_credentials = False
+    
+    # Default credentials
+    DEFAULT_GEMINI_API_KEY = "AIzaSyCkb4a_yq_Iviefm_FJHQr40ukm7BqlLww"
+    DEFAULT_NOTION_API_KEY = "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"
+    DEFAULT_DATABASE_ID = "1b32f69c-d22c-811b-9a38-dd14fcfb7de4"
+    DEFAULT_PAGE_ID = "1b32f69cd22c80909a03f7f0b16e89ad"
+    DEFAULT_PASSWORD = "Nihal6565"
+    
     # Sidebar navigation
     with st.sidebar:
         st.title("Job Tracker")
@@ -1381,106 +1391,148 @@ def run_streamlit_app():
         
         st.markdown("## ⚙️ Configuration")
         
-        # Gemini API Key
-        gemini_api_key = st.text_input("Gemini API Key:", 
-                                      value=os.environ.get("GEMINI_API_KEY", ""),
-                                      type="password")
+        # Option to use default credentials
+        use_default = st.checkbox("Use Default Credentials", value=st.session_state.use_default_credentials)
         
-        # Notion API Key
-        notion_api_key = st.text_input("Notion API Key:", 
-                                      value=os.environ.get("NOTION_API_KEY", ""),
-                                      type="password")
-        
-        # Notion Database Options
-        if notion_api_key:
-            notion_option = st.radio(
-                "Notion Database Option:",
-                ["Create New Database", "Use Existing Database", "No Notion Integration"]
-            )
-            
-            if notion_option == "Create New Database":
-                notion_page_id = st.text_input("Notion Page ID (where to create database):", 
-                                             value=os.environ.get("NOTION_PAGE_ID", ""))
-                
-                if st.button("Create Database & Set API Keys"):
-                    if gemini_api_key and notion_api_key and notion_page_id:
-                        try:
-                            with st.spinner("Creating Notion database..."):
-                                notion_client = NotionClient(notion_api_key, page_id=notion_page_id)
-                                
-                                # Save to environment variables
-                                os.environ["GEMINI_API_KEY"] = gemini_api_key
-                                os.environ["NOTION_API_KEY"] = notion_api_key
-                                os.environ["NOTION_PAGE_ID"] = notion_page_id
-                                os.environ["NOTION_DATABASE_ID"] = notion_client.database_id
-                                
-                                st.session_state.notion_client = notion_client
-                                st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key, notion_client)
-                                st.session_state.api_keys_set = True
-                                st.success(f"Database created successfully! ID: {notion_client.database_id}")
-                                st.rerun()
-                        except Exception as e:
-                            st.error(f"Error creating database: {str(e)}")
-                else:
-                        st.error("All fields are required")
+        if use_default:
+            if st.session_state.use_default_credentials:
+                st.success("Using default credentials")
+                if st.button("Clear Default Credentials"):
+                    st.session_state.use_default_credentials = False
+                    st.rerun()
+            else:
+                password = st.text_input("Enter password to use default credentials:", type="password")
+                if st.button("Validate Password"):
+                    if password == DEFAULT_PASSWORD:
+                        st.session_state.use_default_credentials = True
                         
-            elif notion_option == "Use Existing Database":
-                notion_database_id = st.text_input("Notion Database ID:", 
-                                                 value=os.environ.get("NOTION_DATABASE_ID", ""))
-                
-                if st.button("Validate & Set API Keys"):
-                    if gemini_api_key and notion_api_key and notion_database_id:
+                        # Set default credentials
+                        gemini_api_key = DEFAULT_GEMINI_API_KEY
+                        notion_api_key = DEFAULT_NOTION_API_KEY
+                        notion_database_id = DEFAULT_DATABASE_ID
+                        
+                        # Save to environment variables
+                        os.environ["GEMINI_API_KEY"] = gemini_api_key
+                        os.environ["NOTION_API_KEY"] = notion_api_key
+                        os.environ["NOTION_DATABASE_ID"] = notion_database_id
+                        
+                        # Initialize clients
                         try:
-                            with st.spinner("Validating Notion database..."):
-                                notion_client = NotionClient(notion_api_key, database_id=notion_database_id)
-                                
-                                # Validate database schema
-                                is_valid, message = notion_client.validate_database_schema()
-                                
-                                if not is_valid:
-                                    st.warning(f"Database schema validation: {message}")
-                                    
-                                    # Ask if user wants to update schema
-                                    if st.button("Update Database Schema"):
-                                        success, update_msg = notion_client.update_database_schema()
-                                        if success:
-                                            st.success(update_msg)
-                                else:
-                                    st.success("Database schema is valid!")
-                                
-                                # Save to environment variables
-                                os.environ["GEMINI_API_KEY"] = gemini_api_key
-                                os.environ["NOTION_API_KEY"] = notion_api_key
-                                os.environ["NOTION_DATABASE_ID"] = notion_database_id
-                                
-                                st.session_state.notion_client = notion_client
-                                st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key, notion_client)
-                                st.session_state.api_keys_set = True
-                                st.rerun()
+                            notion_client = NotionClient(notion_api_key, database_id=notion_database_id)
+                            st.session_state.notion_client = notion_client
+                            st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key, notion_client)
+                            st.session_state.api_keys_set = True
+                            st.success("Default credentials set successfully!")
+                            st.rerun()
                         except Exception as e:
-                            st.error(f"Error validating database: {str(e)}")
-                else:
-                        st.error("All fields are required")
+                            st.error(f"Error initializing with default credentials: {str(e)}")
+                    else:
+                        st.error("Invalid password. Please try again.")
+        elif not use_default:
+            st.session_state.use_default_credentials = False
+        
+        # Only show API key inputs if not using default credentials
+        if not st.session_state.use_default_credentials:
+            # Gemini API Key
+            gemini_api_key = st.text_input("Gemini API Key:", 
+                                          value=os.environ.get("GEMINI_API_KEY", ""),
+                                          type="password")
             
-            else:  # No Notion Integration
+            # Notion API Key
+            notion_api_key = st.text_input("Notion API Key:", 
+                                          value=os.environ.get("NOTION_API_KEY", ""),
+                                          type="password")
+            
+            # Notion Database Options
+            if notion_api_key:
+                notion_option = st.radio(
+                    "Notion Database Option:",
+                    ["Create New Database", "Use Existing Database", "No Notion Integration"]
+                )
+                
+                if notion_option == "Create New Database":
+                    notion_page_id = st.text_input("Notion Page ID (where to create database):", 
+                                                 value=os.environ.get("NOTION_PAGE_ID", ""))
+                    
+                    if st.button("Create Database & Set API Keys"):
+                        if gemini_api_key and notion_api_key and notion_page_id:
+                            try:
+                                with st.spinner("Creating Notion database..."):
+                                    notion_client = NotionClient(notion_api_key, page_id=notion_page_id)
+                                    
+                                    # Save to environment variables
+                                    os.environ["GEMINI_API_KEY"] = gemini_api_key
+                                    os.environ["NOTION_API_KEY"] = notion_api_key
+                                    os.environ["NOTION_PAGE_ID"] = notion_page_id
+                                    os.environ["NOTION_DATABASE_ID"] = notion_client.database_id
+                                    
+                                    st.session_state.notion_client = notion_client
+                                    st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key, notion_client)
+                                    st.session_state.api_keys_set = True
+                                    st.success(f"Database created successfully! ID: {notion_client.database_id}")
+                                    st.rerun()
+                            except Exception as e:
+                                st.error(f"Error creating database: {str(e)}")
+                    else:
+                            st.error("All fields are required")
+                            
+                elif notion_option == "Use Existing Database":
+                    notion_database_id = st.text_input("Notion Database ID:", 
+                                                     value=os.environ.get("NOTION_DATABASE_ID", ""))
+                    
+                    if st.button("Validate & Set API Keys"):
+                        if gemini_api_key and notion_api_key and notion_database_id:
+                            try:
+                                with st.spinner("Validating Notion database..."):
+                                    notion_client = NotionClient(notion_api_key, database_id=notion_database_id)
+                                    
+                                    # Validate database schema
+                                    is_valid, message = notion_client.validate_database_schema()
+                                    
+                                    if not is_valid:
+                                        st.warning(f"Database schema validation: {message}")
+                                        
+                                        # Ask if user wants to update schema
+                                        if st.button("Update Database Schema"):
+                                            success, update_msg = notion_client.update_database_schema()
+                                            if success:
+                                                st.success(update_msg)
+                                    else:
+                                        st.success("Database schema is valid!")
+                                    
+                                    # Save to environment variables
+                                    os.environ["GEMINI_API_KEY"] = gemini_api_key
+                                    os.environ["NOTION_API_KEY"] = notion_api_key
+                                    os.environ["NOTION_DATABASE_ID"] = notion_database_id
+                                    
+                                    st.session_state.notion_client = notion_client
+                                    st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key, notion_client)
+                                    st.session_state.api_keys_set = True
+                                    st.rerun()
+                            except Exception as e:
+                                st.error(f"Error validating database: {str(e)}")
+                    else:
+                            st.error("All fields are required")
+                
+                else:  # No Notion Integration
+                    if st.button("Set API Keys"):
+                        if gemini_api_key:
+                            os.environ["GEMINI_API_KEY"] = gemini_api_key
+                            st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key)
+                            st.session_state.api_keys_set = True
+                            st.rerun()
+                        else:
+                            st.error("Gemini API Key is required")
+            else:
+                # Just Gemini API without Notion
                 if st.button("Set API Keys"):
                     if gemini_api_key:
                         os.environ["GEMINI_API_KEY"] = gemini_api_key
                         st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key)
                         st.session_state.api_keys_set = True
                         st.rerun()
-                else:
+                    else:
                         st.error("Gemini API Key is required")
-        else:
-            # Just Gemini API without Notion
-            if st.button("Set API Keys"):
-                if gemini_api_key:
-                    os.environ["GEMINI_API_KEY"] = gemini_api_key
-                    st.session_state.job_scraper = EnhancedJobScraper(gemini_api_key)
-                    st.session_state.api_keys_set = True
-                    st.rerun()
-                else:
-                    st.error("Gemini API Key is required")
     
     # Main content
     if not st.session_state.api_keys_set:
@@ -1497,6 +1549,8 @@ def run_streamlit_app():
         5. Track your job applications and referrals
         
         This app helps you manage your job search by automatically extracting job details and creating personalized referral request messages.
+        
+        **Quick Start**: You can use the "Use Default Credentials" option with the provided password to quickly set up the app with pre-configured API keys.
         """)
         return
     

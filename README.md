@@ -9,6 +9,17 @@ A Streamlit application for tracking job applications, analyzing job description
 - Track job applications in Notion
 - Generate connection messages for LinkedIn
 - Search for company employees on LinkedIn
+- Option to use default credentials with password protection
+
+## Default Credentials
+
+The application includes an option to use default credentials for quick setup:
+
+1. Check the "Use Default Credentials" option in the sidebar
+2. Enter the password when prompted
+3. The application will automatically configure the Gemini API and Notion integration
+
+This is useful for demonstration purposes or for users who don't have their own API keys.
 
 ## Deployment on Streamlit Cloud
 
