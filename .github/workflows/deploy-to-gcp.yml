@@ -22,13 +22,13 @@ jobs:
     - name: Build and push Docker image to Google Container Registry
       run: |
         gcloud auth configure-docker
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker:${{ github.sha }} .
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker:${{ github.sha }}
+        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker2:${{ github.sha }} .
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker2:${{ github.sha }}
         
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy job-tracker \
-          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker:${{ github.sha }} \
+        gcloud run deploy job-tracker2 \
+          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/job-tracker2:${{ github.sha }} \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
@@ -38,4 +38,4 @@ jobs:
           --set-env-vars="GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" \
           --set-env-vars="NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}" \
           --set-env-vars="NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}" \
-          --set-env-vars="NOTION_PAGE_ID=${{ secrets.NOTION_PAGE_ID }}" 
+          --set-env-vars="NOTION_PAGE_ID=${{ secrets.NOTION_PAGE_ID }}"

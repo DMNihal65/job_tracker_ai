@@ -53,15 +53,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose port for Streamlit
-EXPOSE 8501
+# Expose port for Streamlit (Cloud Run expects port 8080)
+EXPOSE 8080
 
 # Set environment variables for Chrome
 ENV PYTHONUNBUFFERED=1 \
     DISPLAY=:99 \
     CHROME_BIN=/usr/bin/google-chrome \
-    CHROMEDRIVER_PATH=/usr/bin/chromedriver
+    CHROMEDRIVER_PATH=/usr/bin/chromedriver \
+    PORT=8080
 
 # Start Xvfb, Chrome, and Streamlit
 CMD Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & \
-    streamlit run Job_agent.py --server.port=8501 --server.address=0.0.0.0 
+    streamlit run Job_agent.py --server.port=8080 --server.address=0.0.0.0 
