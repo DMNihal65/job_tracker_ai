@@ -1371,7 +1371,7 @@ def run_streamlit_app():
         st.session_state.use_default_credentials = False
     
     # Default credentials
-    DEFAULT_GEMINI_API_KEY = "AIzaSyCkb4a_yq_Iviefm_FJHQr40ukm7BqlLww"
+    DEFAULT_GEMINI_API_KEY = "AIzaSyCkpjIW4Ig9AeXDpaRnXFvQaqCmiCngjTo"
     DEFAULT_NOTION_API_KEY = "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"
     DEFAULT_DATABASE_ID = "1b32f69c-d22c-811b-9a38-dd14fcfb7de4"
     DEFAULT_PAGE_ID = "1b32f69cd22c80909a03f7f0b16e89ad"
